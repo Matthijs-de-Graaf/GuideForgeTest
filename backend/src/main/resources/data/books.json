@@ -1,0 +1,202 @@
+[
+    {
+        "id": 1,
+        "title": "The Silent Forest",
+        "isbn": "978-3-16-148410-0",
+        "publication_date": "2021-06-15",
+        "pages": 320,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Alice Greenwood",
+            "author_birthdate": "1975-03-12",
+            "author_country": "USA"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Maple Press",
+            "publisher_city": "New York",
+            "publisher_country": "USA"
+        }
+    },
+    {
+        "id": 2,
+        "title": "Ocean Whispers",
+        "isbn": "978-1-4028-9462-6",
+        "publication_date": "2019-09-10",
+        "pages": 280,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "John Mitchell",
+            "author_birthdate": "1980-11-05",
+            "author_country": "UK"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Harbor Books",
+            "publisher_city": "London",
+            "publisher_country": "UK"
+        }
+    },
+    {
+        "id": 3,
+        "title": "Desert Dreams",
+        "isbn": "978-0-545-01022-1",
+        "publication_date": "2020-01-20",
+        "pages": 350,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Sofia Ramirez",
+            "author_birthdate": "1985-07-22",
+            "author_country": "Spain"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Sunset Publishing",
+            "publisher_city": "Madrid",
+            "publisher_country": "Spain"
+        }
+    },
+    {
+        "id": 4,
+        "title": "Mountain Echoes",
+        "isbn": "978-0-19-853453-6",
+        "publication_date": "2018-11-05",
+        "pages": 410,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Liam Chen",
+            "author_birthdate": "1978-05-30",
+            "author_country": "China"
+        },
+        "publisher": 
+        {
+            "publisher_name": "High Peak Press",
+            "publisher_city": "Beijing",
+            "publisher_country": "China"
+        }
+    },
+    {
+        "id": 5,
+        "title": "City Lights",
+        "isbn": "978-0-7432-7356-0",
+        "publication_date": "2022-03-17",
+        "pages": 290,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Emma Johansson",
+            "author_birthdate": "1982-09-14",
+            "author_country": "Sweden"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Nordic House",
+            "publisher_city": "Stockholm",
+            "publisher_country": "Sweden"
+        }
+    },
+    {
+        "id": 6,
+        "title": "Twilight Garden",
+        "isbn": "978-0-316-76948-0",
+        "publication_date": "2021-12-01",
+        "pages": 310,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Oliver Brown",
+            "author_birthdate": "1979-02-28",
+            "author_country": "Canada"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Maple Press",
+            "publisher_city": "Toronto",
+            "publisher_country": "Canada"
+        }
+    },
+    {
+        "id": 7,
+        "title": "Starlit River",
+        "isbn": "978-1-250-30767-2",
+        "publication_date": "2020-08-22",
+        "pages": 330,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Chloe Martin",
+            "author_birthdate": "1987-06-11",
+            "author_country": "France"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Seine Publications",
+            "publisher_city": "Paris",
+            "publisher_country": "France"
+        }
+    },
+    {
+        "id": 8,
+        "title": "Hidden Trails",
+        "isbn": "978-0-307-47378-5",
+        "publication_date": "2019-04-18",
+        "pages": 370,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Ethan Walker",
+            "author_birthdate": "1983-10-03",
+            "author_country": "Australia"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Outback Press",
+            "publisher_city": "Sydney",
+            "publisher_country": "Australia"
+        }
+    },
+    {
+        "id": 9,
+        "title": "Crimson Sky",
+        "isbn": "978-0-06-112008-4",
+        "publication_date": "2017-07-09",
+        "pages": 400,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Sophia Lee",
+            "author_birthdate": "1981-12-21",
+            "author_country": "South Korea"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Seoul House",
+            "publisher_city": "Seoul",
+            "publisher_country": "South Korea"
+        }
+    },
+    {
+        "id": 10,
+        "title": "Whispering Pines",
+        "isbn": "978-1-56619-909-4",
+        "publication_date": "2022-05-05",
+        "pages": 360,
+        "language": "English",
+        "author": 
+        {
+            "author_name": "Lucas Müller",
+            "author_birthdate": "1976-08-17",
+            "author_country": "Germany"
+        },
+        "publisher": 
+        {
+            "publisher_name": "Bavaria Press",
+            "publisher_city": "Munich",
+            "publisher_country": "Germany"
+        }
+    }
+]
