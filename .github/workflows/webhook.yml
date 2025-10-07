@@ -16,7 +16,7 @@ jobs:
             {
               "title": "${{ github.event.head_commit.message }}",
               "description": "**${{ github.actor }}** did a ${{ github.event_name }} on `${{ github.repository }}`",
-              "color": 5763719,
+              "color": 3447003,
               "author": {
                 "name": "${{ github.actor }}",
                 "url": "https://github.com/${{ github.actor }}",
@@ -37,6 +37,7 @@ jobs:
                   "name": "Commit",
                   "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})"
                 }
+                ${{ github.event_name == 'pull_request' && format(',{{"name":"Pull Request","value":"[{0}]({1})","inline":true}}', github.event.pull_request.title, github.event.pull_request.html_url) || '' }}
               ],
               "footer": {
                 "text": "Run #${{ github.run_number }} • GitHub Actions",

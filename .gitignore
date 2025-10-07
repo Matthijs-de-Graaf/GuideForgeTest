@@ -15,7 +15,7 @@
 # ======================
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
-backend/src/main/resources/application.properties
+backend/src/master/resources/application.properties
 
 # ======================
 # Node / Frontend

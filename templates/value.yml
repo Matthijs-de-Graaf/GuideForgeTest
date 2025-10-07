@@ -1,0 +1,7 @@
+backend:
+  image: ghcr.io/your-org/guideforge-backend:latest
+  replicas: 3
+frontend:
+  image: ghcr.io/your-org/guideforge-frontend:latest
+mysql:
+  password: "{{ .Values.mysql.password }}"

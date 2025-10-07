@@ -1,0 +1,28 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "develop", "feature/*" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and test
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run lint
+          npm test
+    env:
+        REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}

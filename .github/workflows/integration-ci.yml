@@ -1,0 +1,75 @@
+name: Integration CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'  # Gewijzigd naar 21
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Build backend
+        working-directory: ./backend
+        run: ./mvnw clean package
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          REACT_APP_API_URL: http://localhost:8080/api
+
+      - name: Run OWASP ZAP Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'http://localhost:8080'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          cmd_options: '-a'
+
+      # Optioneel: Docker Compose voor full-stack tests
+      - name: Docker Compose Integration
+        run: docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+      - name: Run OWASP ZAP Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'http://localhost:8080'  # Je app URL
+          token: ${{ secrets.GITHUB_TOKEN }}
+          cmd_options: '-a'  # Add alerts
