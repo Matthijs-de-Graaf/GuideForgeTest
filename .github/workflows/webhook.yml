@@ -14,8 +14,8 @@ jobs:
           "content": "@everyone",
           "embeds": [
             {
-              "title": "New Event: ${{ github.event_name }}",
-              "description": "Triggered by **${{ github.actor }}** on `${{ github.repository }}`",
+              "title": "New ${{ github.event_name }}: ${{ github.event.head_commit.message }}",
+              "description": "**${{ github.actor }}** did a ${{ github.event_name }} on `${{ github.repository }}`",
               "color": 5763719,
               "author": {
                 "name": "${{ github.actor }}",
