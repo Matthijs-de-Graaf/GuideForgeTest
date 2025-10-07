@@ -4,7 +4,8 @@ on:
   push:
     branches: [ "develop", "feature/*" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "develop", "master" ]
+  workflow_dispatch:
 
 jobs:
   build-test:
@@ -17,12 +18,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'  # Cache npm dependencies
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install dependencies and test
         working-directory: ./frontend
         run: |
           npm ci
           npm run lint
-          npm test
-    env:
-        REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+          npm test -- --coverage  # Voeg coverage toe
+          npm run build  # Bouw voor consistentie
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+
+      - name: NPM Audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=critical || exit 1  # Fail op kritieke vulns

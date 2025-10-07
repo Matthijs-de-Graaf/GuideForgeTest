@@ -1,65 +1,65 @@
-version: "3.8"
+version: '3.8'
 services:
-
   db:
-    image: mysql:8.0 # Bepaald welke versie er gebruik wordt
-    container_name: guideforge_db
+    image: mysql:8.0
+    restart: always
     environment:
-      # MYSQL_ROOT_PASSWORD - Wachtwoord voor de MySQL root-gebruiker - idk op Windows werkt het anders niet
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      
-      # Worden uit .env gelezen en bij eerste container-build gebruikt om database en gebruiker aan te maken
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-
-    # 3307: HOST (Interne MySQL-communicatie op je PC)
-    # 3306: CONTAINER (MySQL-port in Docker)
-    # Gebruik port 3307 i.p.v. 3306, zodat MariaDB de standaardpoort (3306) kan gebruiken
-    ports:
-      - "3307:3306"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Pak de MySQL schema en maak hem aan
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - app-network
+    # Geen ports in productie; alleen intern via network
 
   backend:
-    image: eclipse-temurin:17-jdk-jammy
-    container_name: guideforge_backend
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-      - /root/.m2:/root/.m2
-    command: ./mvnw spring-boot:run -Dspring-boot.run.fork=false # Maakt gebruik van de Maven Wrapper (.mvn + mvnw) om Maven te starten binnen de container
-
-    ports:
-      - "8080:8080"
-    environment:
-      # useSSL - Bepaalt of SSL gebruikt wordt voor de verbinding (hier false = geen SSL)
-      # allowPublicKeyRetrieval - Nodig bij MySQL 8 om de publieke sleutel van de server op te halen bij gebruik van caching_sha2_password
-      # serverTimezone - Zet de tijdzone van de verbinding
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam"
-      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
-      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
+    image: ${DOCKER_USERNAME}/guideforge-backend:latest
+    restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "8080:8080"  # Alleen nodig als direct toegankelijk; anders via reverse proxy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - app-network
 
   frontend:
-    image: node:20-bullseye
-    container_name: guideforge_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:5173"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0" # Start de frontend
-    environment:
-      # Zorgt ervoor dat de frontend standaard herlaad bij changes
-      - CHOKIDAR_USEPOLLING=true
-      # Luistert op alle netwerkinterfaces - zorgt ervoor dat hij bereikbaar is ook buite de Docker container
-      - HOST=0.0.0.0
+    image: ${DOCKER_USERNAME}/guideforge-frontend:latest
+    restart: always
     depends_on:
       - backend
+    environment:
+      REACT_APP_API_URL: http://backend:8080/api
+    ports:
+      - "80:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   db_data:
