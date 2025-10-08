@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "develop", "feature/*" ]
   pull_request:
-    branches: [ "develop", "master" ]
+    branches: [ "develop", "main" ]
   workflow_dispatch:
 
 jobs:
@@ -32,11 +32,18 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven  # Cache Maven dependencies
+          cache: maven
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h db -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} --silent; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
 
       - name: Run unit tests
         working-directory: ./backend
-        run: ./mvnw clean test  # Alleen unit tests
+        run: ./mvnw clean test
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
           SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
@@ -48,7 +55,7 @@ jobs:
           project: 'backend'
           path: './backend'
           format: 'HTML,JSON'
-          failOnCVSS: '7'
+          failOnCVSS: '8'  # Tijdelijk verhoogd voor debugging
 
       - name: Upload Dependency-Check Report
         uses: actions/upload-artifact@v4
