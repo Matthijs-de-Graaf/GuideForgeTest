@@ -1,9 +1,10 @@
 name: Docker Build & Deploy
 
+# Trigger only when code is merged into master
 on:
   push:
-    branches: [ "master" ]
-  workflow_dispatch:
+    branches:
+      - master
 
 jobs:
   docker:
@@ -36,35 +37,33 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/guideforge-frontend:latest,${{ secrets.DOCKER_USERNAME }}/guideforge-frontend:${{ github.sha }}
-  
+
   webhook-request:
     runs-on: ubuntu-latest
     steps:
-
-    - name: Send a request to webhook
-      run: |
-        curl -H "Content-Type: application/json" \
-        -X POST \
-        -d '{
-          "username": "Notify Deployment",
-          "content": "@everyone",
-          "embeds": [
-            {
-              "title": "Deployment to production",
-              "description": "**${{ github.actor }}** published to the production`",
-              "color": 3447003,
-              "author": {
-                "name": "${{ github.actor }}",
-                "url": "https://github.com/${{ github.actor }}",
-                "icon_url": "https://avatars.githubusercontent.com/u/${{ github.actor_id }}?v=4"
+      - name: Send a request to webhook
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "Notify Deployment",
+            "content": "@everyone",
+            "embeds": [
+              {
+                "title": "Deployment to production",
+                "description": "**${{ github.actor }}** published to production",
+                "color": 3447003,
+                "author": {
+                  "name": "${{ github.actor }}",
+                  "url": "https://github.com/${{ github.actor }}",
+                  "icon_url": "https://avatars.githubusercontent.com/u/${{ github.actor_id }}?v=4"
+                }
               }
-              ],
-              "footer": {
-                "text": "Run #${{ github.run_number }} • GitHub Actions",
-                "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-              },
-              "timestamp": "${{ github.event.head_commit.timestamp }}"
-            }
-          ]
-        }' \
-        ${{ secrets.WEBHOOK_URL }}
+            ],
+            "footer": {
+              "text": "Run #${{ github.run_number }} • GitHub Actions",
+              "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+            },
+            "timestamp": "${{ github.event.head_commit.timestamp }}"
+          }' \
+          ${{ secrets.WEBHOOK_URL }}
