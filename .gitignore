@@ -15,7 +15,11 @@
 # ======================
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
+<<<<<<< HEAD
 backend/src/master/resources/application.properties
+=======
+backend/src/main/resources/application.properties
+>>>>>>> 44266dd (Save local changes before switching branches)
 
 # ======================
 # Node / Frontend

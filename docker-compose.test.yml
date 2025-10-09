@@ -1,10 +1,14 @@
+<<<<<<< HEAD
 version: '3.8'
+=======
+>>>>>>> 44266dd (Save local changes before switching branches)
 services:
   db:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
+<<<<<<< HEAD
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
@@ -14,6 +18,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+=======
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+>>>>>>> 44266dd (Save local changes before switching branches)
     networks:
       - app-network
 
@@ -26,8 +39,13 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+<<<<<<< HEAD
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+=======
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+>>>>>>> 44266dd (Save local changes before switching branches)
     networks:
       - app-network
 

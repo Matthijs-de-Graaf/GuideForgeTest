@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 version: '3.8'
+=======
+>>>>>>> 44266dd (Save local changes before switching branches)
 services:
   db:
     image: mysql:8.0

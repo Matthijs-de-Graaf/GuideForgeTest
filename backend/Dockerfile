@@ -6,7 +6,11 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
+<<<<<<< HEAD
 FROM eclipse-temurin:21-jdk-slim
+=======
+FROM eclipse-temurin:21-jre
+>>>>>>> 44266dd (Save local changes before switching branches)
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080

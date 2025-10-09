@@ -2,7 +2,11 @@
 FROM node:20
 WORKDIR /app
 # Kopieer package.json en lock file voor caching
+<<<<<<< HEAD
 COPY package*.json .
+=======
+COPY package*.json ./
+>>>>>>> 44266dd (Save local changes before switching branches)
 RUN npm ci
 # Kopieer broncode (wordt overschreven door bind mount)
 COPY . .
