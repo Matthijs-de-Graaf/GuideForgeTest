@@ -1,24 +1,13 @@
-# Project Samenvatting: GuideForge Full-Stack Applicatie met CI/CD Pipeline
-
-Dit document geeft een overzicht van alles wat we in deze discussie hebben opgezet voor je GuideForge project. We hebben een full-stack applicatie gebouwd met een Spring Boot backend, Vite React frontend, MySQL database, Docker voor containerization, en GitHub Actions voor CI/CD. Ik focus op de gemaakte files, wat ze doen, hoe het hele project werkt, en hoe de CI/CD pipelines functioneren. Alles is opgezet om professioneel te zijn, met scheiding tussen development en productie.
-
 ## Hoe het Hele Project Werkt
 
-- **Overzicht**: GuideForge is een full-stack applicatie voor het beheren van boeken. De backend (Spring Boot) biedt een REST API voor CRUD-operaties op boeken (create, read, update, delete). De frontend (Vite React) communiceert met de backend via API calls. MySQL slaat de data op (bijv. boeken met auteurs en uitgevers). Docker containerizeert de app voor consistente execution, en GitHub Actions automatiseert testen, builds, en deployments.
 - **Workflow**:
   - **Development**: Run lokaal met `docker-compose.dev.yml` voor hot reloading (veranderingen in code worden direct zichtbaar zonder restarts).
   - **Productie**: Run met `docker-compose.yml` op een server, met images van Docker Hub.
-  - **Data Flow**: Frontend roept backend API's aan (bijv. `/api/books/all` voor alle boeken). Backend gebruikt JPA om data op te slaan in MySQL. Bij opstarten laadt `BookJsonDataLoader` data uit `books.json` als de DB leeg is.
   - **Security**: Secrets (wachtwoorden, API URLs) in `.env` of GitHub Secrets, geen hardcoded waarden.
-- **Key Features**:
-  - Backend: REST endpoints voor boeken, data loading uit JSON, JPA voor database interactie.
-  - Frontend: Vite voor snelle development, Nginx voor productie serving.
-  - Database: MySQL met initialisatie scripts.
-  - CI/CD: Automatische testen en deployments via GitHub Actions.
 
 ## Gemaakte Files en Wat Ze Doen
 
-Hier is een lijst van de belangrijkste files die we hebben aangemaakt of bijgewerkt, gegroepeerd per categorie. Elke file wordt kort uitgelegd, inclusief wat hij doet en hoe hij in het project past.
+Hier is een lijst die ik heb toegevoegd per categorie. Elke file heeft een korte uitleg.
 
 ### Backend Files (in `./backend/`)
 
