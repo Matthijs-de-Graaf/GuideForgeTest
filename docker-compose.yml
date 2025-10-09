@@ -1,9 +1,8 @@
-version: "3.8"
 services:
 
   db:
     image: mysql:8.0 # Bepaald welke versie er gebruik wordt
-    container_name: guideforge_db
+    restart: always
     environment:
       # MYSQL_ROOT_PASSWORD - Wachtwoord voor de MySQL root-gebruiker - idk op Windows werkt het anders niet
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
@@ -21,31 +20,49 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Pak de MySQL schema en maak hem aan
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - app-network
 
   backend:
-    image: eclipse-temurin:17-jdk-jammy
-    container_name: guideforge_backend
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-      - /root/.m2:/root/.m2
-    command: ./mvnw spring-boot:run -Dspring-boot.run.fork=false # Maakt gebruik van de Maven Wrapper (.mvn + mvnw) om Maven te starten binnen de container
+    image:  ${DOCKER_USERNAME}/guideforge-backend:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
 
+    # Alleen nodig als direct toegankelijk; anders via reverse proxy
     ports:
       - "8080:8080"
-    environment:
-      # useSSL - Bepaalt of SSL gebruikt wordt voor de verbinding (hier false = geen SSL)
-      # allowPublicKeyRetrieval - Nodig bij MySQL 8 om de publieke sleutel van de server op te halen bij gebruik van caching_sha2_password
-      # serverTimezone - Zet de tijdzone van de verbinding
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam"
-      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
-      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
-    depends_on:
-      - db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - app-network
 
   frontend:
-    image: node:20-bullseye
+    image: ${DOCKER_USERNAME}/guideforge-frontend:latest
+    restart: always
+    depends_on:
+      - backend
     container_name: guideforge_frontend
+    environment:
+      # Zorgt ervoor dat de frontend standaard herlaad bij changes
+      CHOKIDAR_USEPOLLING: "true"
+      # Luistert op alle netwerkinterfaces - zorgt ervoor dat hij bereikbaar is ook buite de Docker container
+      HOST: "0.0.0.0"
+      VITE_API_URL: "http://backend:8080/api"
+
     working_dir: /app
     volumes:
       - ./frontend:/app
@@ -53,13 +70,17 @@ services:
     ports:
       - "3000:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0" # Start de frontend
-    environment:
-      # Zorgt ervoor dat de frontend standaard herlaad bij changes
-      - CHOKIDAR_USEPOLLING=true
-      # Luistert op alle netwerkinterfaces - zorgt ervoor dat hij bereikbaar is ook buite de Docker container
-      - HOST=0.0.0.0
-    depends_on:
-      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - app-network      
 
+networks:
+  app-network:
+    driver: bridge
+    
 volumes:
   db_data:

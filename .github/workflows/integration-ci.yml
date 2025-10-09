@@ -1,0 +1,78 @@
+name: Integration CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=5
+          --memory=512m
+        volumes:
+          - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Check MySQL logs
+        run: docker logs $(docker ps -q --filter name=db) || true
+
+      - name: Wait for MySQL
+        run: |
+          until docker exec $(docker ps -q --filter name=db) mysqladmin ping -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} -h 127.0.0.1 --silent; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
+        continue-on-error: true
+
+      - name: Build backend
+        working-directory: ./backend
+        run: ./mvnw clean package
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          REACT_APP_API_URL: http://backend:8080/api
+
+      - name: Docker Compose Integration
+        run: docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+      - name: Run OWASP ZAP Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'http://backend:8080'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          cmd_options: '-a'
