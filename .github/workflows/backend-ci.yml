@@ -35,8 +35,11 @@ jobs:
           cache: maven
 
       - name: Wait for MySQL
+        env:
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
-          until mysqladmin ping -h db -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} --silent; do
+          until mysqladmin ping -h db -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; do
             echo "Waiting for MySQL..."
             sleep 5
           done
