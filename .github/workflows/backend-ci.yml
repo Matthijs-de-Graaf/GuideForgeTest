@@ -55,7 +55,6 @@ jobs:
           project: 'backend'
           path: './backend'
           format: 'HTML,JSON'
-          failOnCVSS: '8'  # Tijdelijk verhoogd voor debugging
 
       - name: Upload Dependency-Check Report
         uses: actions/upload-artifact@v4
