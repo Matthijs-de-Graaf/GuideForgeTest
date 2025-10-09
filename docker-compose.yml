@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-version: '3.8'
-services:
-  db:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-=======
 services:
 
   db:
@@ -35,7 +20,6 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Pak de MySQL schema en maak hem aan
->>>>>>> 44266dd (Save local changes before switching branches)
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "--silent"]
       interval: 10s
@@ -43,16 +27,9 @@ services:
       retries: 3
     networks:
       - app-network
-<<<<<<< HEAD
-    # Geen ports in productie; alleen intern via network
-
-  backend:
-    image: ${DOCKER_USERNAME}/guideforge-backend:latest
-=======
 
   backend:
     image:  ${DOCKER_USERNAME}/guideforge-backend:latest
->>>>>>> 44266dd (Save local changes before switching branches)
     restart: always
     depends_on:
       db:
@@ -61,15 +38,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-<<<<<<< HEAD
-    ports:
-      - "8080:8080"  # Alleen nodig als direct toegankelijk; anders via reverse proxy
-=======
 
     # Alleen nodig als direct toegankelijk; anders via reverse proxy
     ports:
       - "8080:8080"
->>>>>>> 44266dd (Save local changes before switching branches)
     deploy:
       resources:
         limits:
@@ -83,12 +55,6 @@ services:
     restart: always
     depends_on:
       - backend
-<<<<<<< HEAD
-    environment:
-      REACT_APP_API_URL: http://backend:8080/api
-    ports:
-      - "80:80"
-=======
     container_name: guideforge_frontend
     environment:
       # Zorgt ervoor dat de frontend standaard herlaad bij changes
@@ -104,28 +70,17 @@ services:
     ports:
       - "3000:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0" # Start de frontend
->>>>>>> 44266dd (Save local changes before switching branches)
     deploy:
       resources:
         limits:
           cpus: '0.25'
           memory: 256M
     networks:
-<<<<<<< HEAD
-      - app-network
-=======
       - app-network      
->>>>>>> 44266dd (Save local changes before switching branches)
 
 networks:
   app-network:
     driver: bridge
-<<<<<<< HEAD
-
-volumes:
-  db_data:
-=======
     
 volumes:
   db_data:
->>>>>>> 44266dd (Save local changes before switching branches)

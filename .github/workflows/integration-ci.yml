@@ -16,15 +16,6 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-<<<<<<< HEAD
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-=======
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=10s
@@ -33,7 +24,6 @@ jobs:
           --memory=512m
         volumes:
           - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
->>>>>>> 44266dd (Save local changes before switching branches)
 
     steps:
       - uses: actions/checkout@v4
@@ -52,8 +42,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
 
-<<<<<<< HEAD
-=======
       - name: Check MySQL logs
         run: docker logs $(docker ps -q --filter name=db) || true
 
@@ -65,19 +53,13 @@ jobs:
           done
         continue-on-error: true
 
->>>>>>> 44266dd (Save local changes before switching branches)
       - name: Build backend
         working-directory: ./backend
         run: ./mvnw clean package
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
-<<<<<<< HEAD
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-=======
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
->>>>>>> 44266dd (Save local changes before switching branches)
 
       - name: Build frontend
         working-directory: ./frontend
