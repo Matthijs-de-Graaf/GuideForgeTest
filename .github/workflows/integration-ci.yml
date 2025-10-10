@@ -25,7 +25,7 @@ jobs:
           --health-retries=5
           --memory=512m
         volumes:
-          - ./docker-entrypoint-initdb.d:/init.sql
+          - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
     steps:
       - uses: actions/checkout@v4
