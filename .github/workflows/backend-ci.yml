@@ -19,11 +19,13 @@ jobs:
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
+          --health-timeout=10s
+          --health-retries=5
+          --memory=512m
+        volumes:
+          - ./docker-entrypoint-initdb.d:/init.sql
     steps:
       - uses: actions/checkout@v4
 
@@ -36,21 +38,22 @@ jobs:
 
       - name: Wait for MySQL
         env:
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
           echo "Waiting for MySQL to be healthy..."
-          for i in {1..20}; do
-            if mysqladmin ping -h db -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; then
+          for i in {1..30}; do
+            if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
-            echo "Still waiting for MySQL ($i/20)..."
+            echo "Still waiting for MySQL ($i/30)..."
             sleep 5
           done
           echo "MySQL failed to start after waiting."
           exit 1
 
+      - name: Check MySQL logs
+        run: docker logs $(docker ps -q --filter name=db)
 
       - name: Debug MySQL logs
         if: failure() || always()
