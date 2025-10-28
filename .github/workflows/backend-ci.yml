@@ -15,71 +15,45 @@ jobs:
       db:
         image: mysql:8.0
         env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        ports:
+          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h db -uroot -p$MYSQL_ROOT_PASSWORD --silent"
+          --health-cmd="mysqladmin ping -h localhost -uroot -p${MYSQL_ROOT_PASSWORD} --silent"
           --health-interval=10s
-          --health-timeout=10s
-          --health-retries=60
-          --memory=512m
+          --health-timeout=5s
+          --health-retries=20
+
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
 
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
-      - name: Wait for MySQL to be healthy
+      - name: Wait for MySQL to be ready
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
-          echo "Wachten tot container netwerk stabiel is..."
-          sleep 30
-
-          echo "Controleer of poort 3306 bereikbaar is via DNS 'db'..."
-          sudo apt-get install -y netcat-openbsd
-          for i in $(seq 1 30); do
-            if nc -z db 3306 2>/dev/null; then
-              echo "Poort 3306 bereikbaar."
-              break
-            fi
-            echo "Poort nog niet open of DNS onbereikbaar ($i/30)..."
-            sleep 2
-          done
-
-          echo "Wachten tot MySQL echt gereed is..."
+          echo "Wachten tot MySQL reageert..."
           for i in $(seq 1 60); do
-            if mysqladmin ping -h db --protocol=tcp -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
-              echo "MySQL is gereed."
+            if mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
+              echo "MySQL is klaar."
               exit 0
             fi
-            echo "Nog bezig ($i/60)..."
+            echo "Nog niet gereed ($i/60)..."
             sleep 5
           done
-          echo "MySQL is niet gestart binnen de wachttijd."
+          echo "MySQL kwam niet online binnen de wachttijd."
           exit 1
-
-      - name: Debug MySQL connection
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-        run: |
-          echo "Listing databases to verify MySQL connection:"
-          mysql -h db -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
 
       - name: Run unit tests
         working-directory: ./backend
         run: ./mvnw clean test
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
           SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
