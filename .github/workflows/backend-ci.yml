@@ -37,21 +37,21 @@ jobs:
           cache: maven
 
       # Stap 1: Wacht tot MySQL klaar is
-      - name: Wait for MySQL
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      - name: Wait for MySQL to be healthy
         run: |
-          echo "Waiting for MySQL to be healthy..."
+          echo "Waiting for MySQL service inside container..."
           for i in $(seq 1 60); do
-            if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
+            if docker exec $(docker ps -q --filter "name=db") \
+                mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
             echo "Still waiting ($i/60)..."
             sleep 5
           done
-          echo "MySQL did not become ready in time."
+          echo "MySQL failed to start."
           exit 1
+
 
       # Stap 2: Debug MySQL verbinding (optioneel)
       - name: Debug MySQL connection
