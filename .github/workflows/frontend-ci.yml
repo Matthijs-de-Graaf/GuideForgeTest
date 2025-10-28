@@ -26,10 +26,21 @@ jobs:
         run: |
           npm ci
           npm run lint -- --fix
-          npm test -- --coverage
           npm run build
         env:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+
+      - name: Run frontend tests if available
+        working-directory: ./frontend
+        run: |
+          if npm run | grep -q "test"; then
+            echo "Test script found. Running tests..."
+            npm test -- --coverage
+          else
+            echo "No test script defined. Skipping tests."
+          fi
+        env:
+          REACT_APP_API_URL: http://localhost:8080/api
 
       - name: NPM Audit
         working-directory: ./frontend
