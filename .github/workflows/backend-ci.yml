@@ -43,9 +43,20 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
+          echo "Checking network reachability for host 'db'..."
+          sudo apt-get install -y netcat-openbsd
+          for i in $(seq 1 30); do
+            if nc -z db 3306; then
+              echo "TCP connection to db:3306 successful."
+              break
+            fi
+            echo "Port not open yet ($i/30)..."
+            sleep 2
+          done
+
           echo "Waiting for MySQL service (db) to accept connections..."
           for i in $(seq 1 60); do
-            if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
+            if mysqladmin ping -h db --protocol=tcp -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
