@@ -25,12 +25,12 @@ jobs:
         working-directory: ./frontend
         run: |
           npm ci
-          npm run lint || npm run lint -- --fix  # Probeer te fixen
-          npm test -- --coverage || echo "Tests failed, check logs"
+          npm run lint -- --fix
+          npm test -- --coverage
           npm run build
         env:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
 
       - name: NPM Audit
         working-directory: ./frontend
-        run: npm audit --audit-level=high || npm audit fix  # Verlaagd naar high voor debugging
+        run: npm audit --audit-level=high  # Verlaagd naar high voor debugging

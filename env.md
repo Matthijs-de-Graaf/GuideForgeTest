@@ -14,15 +14,8 @@ Hier is een lijst die ik heb toegevoegd per categorie. Elke file heeft een korte
 - **pom.xml**: Definieert afhankelijkheden (bijv. Spring Boot starters, MySQL driver, Lombok) en plugins (bijv. compiler voor Lombok). Dit bestand beheert de build en dependencies voor Maven.
 - **src/main/resources/application.properties**: Configuratie voor de backend in productie/dev (bijv. database connectie, JPA settings). Zorgt dat Spring Boot weet hoe met MySQL te verbinden.
 - **src/test/resources/application.properties**: Configuratie voor tests (bijv. test database connectie). Zorgt dat tests een aparte omgeving gebruiken zonder productie data te beïnvloeden.
-- **src/main/java/com/guideforge/backend/book/Author.java**: Record class voor auteur data (naam, geboortedatum, land). Gebruikt als ingebedde object in `Book`.
-- **src/main/java/com/guideforge/backend/book/Publisher.java**: Record class voor uitgever data (naam, stad, land). Gebruikt als ingebedde object in `Book`.
-- **src/main/java/com/guideforge/backend/book/Language.java**: Enum voor taal (bijv. ENGLISH, DUTCH). Wordt gebruikt in `Book` om talen te representeren.
-- **src/main/java/com/guideforge/backend/book/Book.java**: Record class voor boek data (id, titel, ISBN, etc.). De hoofd entiteit die in de database wordt opgeslagen.
-- **src/main/java/com/guideforge/backend/book/BookRepository.java**: JPA repository interface voor CRUD-operaties op boeken. Handelt database interacties af (findAll, save, delete, count).
-- **src/main/java/com/guideforge/backend/book/BookController.java**: REST controller voor API endpoints (GET, POST, PUT, DELETE voor boeken). Beheert HTTP verzoeken en responsen.
-- **src/main/java/com/guideforge/backend/book/BookJsonDataLoader.java**: CommandLineRunner die boeken laadt uit `/data/books.json` bij opstarten als de DB leeg is. Vult de database met initiële data.
-- **src/main/java/com/guideforge/backend/book/BookNotFoundException.java**: Custom exception voor 404 fouten als een boek niet bestaat. Wordt gebruikt in de controller.
-- **src/test/java/com/guideforge/backend/BackendApplicationTests.java**: Basis testclass om te controleren of de Spring context correct laadt. Gebruikt `@SpringBootTest`.
+- **Dockerfile**: Multi-stage Dockerfile voor backend productie (Maven voor build, Java JRE voor runtime).
+- **Dockerfile.dev**: Dockerfile voor backend development (Maven voor hot reload).
 
 ### Frontend Files (in `./frontend/`)
 
@@ -32,8 +25,6 @@ Hier is een lijst die ik heb toegevoegd per categorie. Elke file heeft een korte
 
 ### Docker Files (in project root)
 
-- **Dockerfile (backend)**: Multi-stage Dockerfile voor backend productie (Maven voor build, Java JRE voor runtime).
-- **Dockerfile.dev (backend)**: Dockerfile voor backend development (Maven voor hot reload).
 - **docker-entrypoint-initdb.d/init.sql**: SQL script voor MySQL initialisatie (stelt `root` wachtwoord in).
 - **docker-entrypoint-initdb.d**: Map voor MySQL initialisatie scripts (wordt uitgevoerd bij container start).
 

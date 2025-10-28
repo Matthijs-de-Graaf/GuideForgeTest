@@ -19,10 +19,10 @@ jobs:
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-cmd="mysqladmin ping -h db -uroot -p$MYSQL_ROOT_PASSWORD --silent"
           --health-interval=10s
           --health-timeout=10s
-          --health-retries=5
+          --health-retries=30
           --memory=512m
 
     steps:
@@ -42,20 +42,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
 
-      - name: Check MySQL logs
-        run: docker logs $(docker ps -q --filter name=db)
-
       - name: Wait for MySQL
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
           echo "Waiting for MySQL to be healthy..."
-          for i in {1..30}; do
+          for i in $(seq 1 30); do
             if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
-            echo "Still waiting for MySQL ($i/30)..."
+            echo "Still waiting ($i/30)..."
             sleep 5
           done
           echo "MySQL failed to start after waiting."
@@ -66,21 +63,31 @@ jobs:
         run: ./mvnw clean package
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${{ secrets.MYSQL_DATABASE }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Amsterdam
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
       - name: Build frontend
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          npm ci
+          npm run lint -- --fix
+          npm run lint
+          npm test -- --coverage
+          npm run build
         env:
-          REACT_APP_API_URL: http://backend:8080/api
+          REACT_APP_API_URL: http://localhost:8080/api
 
       - name: Docker Compose Integration
         run: docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
       - name: Run OWASP ZAP Scan
         uses: zaproxy/action-full-scan@v0.10.0
         with:
-          target: 'http://backend:8080'
+          target: 'http://localhost:8080'
           token: ${{ secrets.GITHUB_TOKEN }}
           cmd_options: '-a'

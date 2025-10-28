@@ -10,19 +10,20 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+
     services:
       db:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-cmd="mysqladmin ping -h db -uroot -p$MYSQL_ROOT_PASSWORD --silent"
           --health-interval=10s
           --health-timeout=10s
-          --health-retries=5
+          --health-retries=10
           --memory=512m
 
     steps:
@@ -35,32 +36,19 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Wait for MySQL
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      - name: Wait for MySQL to be ready
         run: |
-          echo "Waiting for MySQL to be healthy..."
-          for i in {1..30}; do
-            if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
+          echo "Waiting for MySQL..."
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h db -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
-            echo "Still waiting for MySQL ($i/30)..."
+            echo "Still waiting ($i/30)..."
             sleep 5
           done
-          echo "MySQL failed to start after waiting."
+          echo "MySQL did not become ready in time."
           exit 1
-
-      - name: Check MySQL logs
-        run: docker logs $(docker ps -q --filter name=db)
-
-      - name: Debug MySQL logs
-        if: failure() || always()
-        run: |
-          echo "=== Docker containers ==="
-          docker ps -a
-          echo "=== MySQL container logs ==="
-          docker logs $(docker ps -a --filter "name=db" -q) || true
 
       - name: Run unit tests
         working-directory: ./backend
