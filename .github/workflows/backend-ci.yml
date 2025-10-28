@@ -36,33 +36,32 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Stap 1: Wacht tot MySQL klaar is
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
       - name: Wait for MySQL to be healthy
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
-          echo "Waiting for MySQL service inside container..."
+          echo "Waiting for MySQL service (db) to accept connections..."
           for i in $(seq 1 60); do
-            if docker exec $(docker ps -q --filter "name=db") \
-                mysqladmin ping -h 127.0.0.1 -uroot -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" --silent; then
+            if mysqladmin ping -h db -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
             echo "Still waiting ($i/60)..."
             sleep 5
           done
-          echo "MySQL failed to start."
+          echo "MySQL failed to start after waiting."
           exit 1
 
-
-      # Stap 2: Debug MySQL verbinding (optioneel)
       - name: Debug MySQL connection
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
           echo "Listing databases to verify MySQL connection:"
-          docker exec $(docker ps -q --filter "name=db") \
-            mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
+          mysql -h db -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
 
-      # Stap 3: Run unit tests
       - name: Run unit tests
         working-directory: ./backend
         run: ./mvnw clean test
@@ -71,7 +70,6 @@ jobs:
           SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USER }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
-      # Stap 4: OWASP Dependency Check
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -79,7 +77,6 @@ jobs:
           path: './backend'
           format: 'HTML,JSON'
 
-      # Stap 5: Upload Dependency-Check Report
       - name: Upload Dependency-Check Report
         uses: actions/upload-artifact@v4
         with:
