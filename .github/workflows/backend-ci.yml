@@ -25,7 +25,7 @@ jobs:
           --health-timeout=10s
           --health-retries=60
           --memory=512m
-
+          --timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -43,27 +43,30 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
-          echo "Checking network reachability for host 'db'..."
+          echo "Wachten tot container netwerk stabiel is..."
+          sleep 30
+
+          echo "Controleer of poort 3306 bereikbaar is via DNS 'db'..."
           sudo apt-get install -y netcat-openbsd
           for i in $(seq 1 30); do
-            if nc -z db 3306; then
-              echo "TCP connection to db:3306 successful."
+            if nc -z db 3306 2>/dev/null; then
+              echo "Poort 3306 bereikbaar."
               break
             fi
-            echo "Port not open yet ($i/30)..."
+            echo "Poort nog niet open of DNS onbereikbaar ($i/30)..."
             sleep 2
           done
 
-          echo "Waiting for MySQL service (db) to accept connections..."
+          echo "Wachten tot MySQL echt gereed is..."
           for i in $(seq 1 60); do
             if mysqladmin ping -h db --protocol=tcp -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; then
-              echo "MySQL is ready!"
+              echo "MySQL is gereed."
               exit 0
             fi
-            echo "Still waiting ($i/60)..."
+            echo "Nog bezig ($i/60)..."
             sleep 5
           done
-          echo "MySQL failed to start after waiting."
+          echo "MySQL is niet gestart binnen de wachttijd."
           exit 1
 
       - name: Debug MySQL connection
