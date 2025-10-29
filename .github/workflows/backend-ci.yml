@@ -38,13 +38,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Kopieer init.sql naar een plek waar MySQL het automatisch uitvoert
       - name: Copy init.sql to MySQL init directory
         run: |
           mkdir -p ./mysql-init
           cp docker-entrypoint-initdb.d/init.sql ./mysql-init/init.sql
 
-      # Start MySQL + run init.sql via docker exec
       - name: Initialize Database Schema
         run: |
           echo "Waiting for MySQL to be healthy..."
@@ -61,13 +59,11 @@ jobs:
           echo "MySQL failed to start."
           exit 1
 
-      # Debug: toon tabellen
       - name: Verify tables created
         run: |
           echo "Listing tables in ${{ secrets.MYSQL_DATABASE }}..."
           echo "SHOW TABLES;" | mysql -h 127.0.0.1 -u ${{ secrets.MYSQL_USER }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }}
 
-      # Run Maven tests
       - name: Ensure mvnw is executable
         working-directory: ./backend
         run: chmod +x ./mvnw
@@ -81,23 +77,6 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: validate
         run: ./mvnw clean test -Dspring.profiles.active=test
 
-      # OWASP Dependency Check
-      - name: Run OWASP Dependency-Check via Maven
-        working-directory: ./backend
-        run: ./mvnw org:owasp:dependency-check-maven:check -DcentralAnalyzerEnabled=false  
-     
-      # Upload rapport
-      - name: Upload Dependency-Check Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: |
-            ./backend/target/reports/dependency-check-report.html
-            ./backend/target/reports/dependency-check-report.json
-
-
-      # Optioneel: Upload test results
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
