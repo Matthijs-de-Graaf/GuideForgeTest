@@ -1,50 +1,54 @@
+# Send a webhook notification for any repository event
 name: Webhook on Event
+
+# Trigger on push, pull request, issue, or comment events
 on: [push, pull_request, issues, issue_comment]
 
 jobs:
   webhook-request:
     runs-on: ubuntu-latest
     steps:
-    - name: Send a request to webhook
-      run: |
-        curl -H "Content-Type: application/json" \
-        -X POST \
-        -d '{
-          "username": "GitHub Actions",
-          "content": "@everyone",
-          "embeds": [
-            {
-              "title": "${{ github.event.head_commit.message }}",
-              "description": "**${{ github.actor }}** did a ${{ github.event_name }} on `${{ github.repository }}`",
-              "color": 3447003,
-              "author": {
-                "name": "${{ github.actor }}",
-                "url": "https://github.com/${{ github.actor }}",
-                "icon_url": "https://avatars.githubusercontent.com/u/${{ github.actor_id }}?v=4"
-              },
-              "fields": [
-                {
-                  "name": "Repository",
-                  "value": "[${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})",
-                  "inline": true
+      # Send structured event data to external webhook (e.g., Discord)
+      - name: Send a request to webhook
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "username": "GitHub Actions",
+            "content": "@everyone",
+            "embeds": [
+              {
+                "title": "${{ github.event.head_commit.message }}",
+                "description": "**${{ github.actor }}** did a ${{ github.event_name }} on `${{ github.repository }}`",
+                "color": 3447003,
+                "author": {
+                  "name": "${{ github.actor }}",
+                  "url": "https://github.com/${{ github.actor }}",
+                  "icon_url": "https://avatars.githubusercontent.com/u/${{ github.actor_id }}?v=4"
                 },
-                {
-                  "name": "Branch",
-                  "value": "${{ github.ref_name }}",
-                  "inline": true
+                "fields": [
+                  {
+                    "name": "Repository",
+                    "value": "[${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})",
+                    "inline": true
+                  },
+                  {
+                    "name": "Branch",
+                    "value": "${{ github.ref_name }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commit",
+                    "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})"
+                  }
+                  ${{ github.event_name == 'pull_request' && format(',{{"name":"Pull Request","value":"[{0}]({1})","inline":true}}', github.event.pull_request.title, github.event.pull_request.html_url) || '' }}
+                ],
+                "footer": {
+                  "text": "Run #${{ github.run_number }} • GitHub Actions",
+                  "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                 },
-                {
-                  "name": "Commit",
-                  "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})"
-                }
-                ${{ github.event_name == 'pull_request' && format(',{{"name":"Pull Request","value":"[{0}]({1})","inline":true}}', github.event.pull_request.title, github.event.pull_request.html_url) || '' }}
-              ],
-              "footer": {
-                "text": "Run #${{ github.run_number }} • GitHub Actions",
-                "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-              },
-              "timestamp": "${{ github.event.head_commit.timestamp }}"
-            }
-          ]
-        }' \
-        ${{ secrets.WEBHOOK_URL }}
+                "timestamp": "${{ github.event.head_commit.timestamp }}"
+              }
+            ]
+          }' \
+          ${{ secrets.WEBHOOK_URL }}

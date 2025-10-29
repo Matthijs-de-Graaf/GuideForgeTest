@@ -1,3 +1,5 @@
+# Docker Compose setup for local development environment
+
 services:
   db:
     image: mysql:8.0
@@ -9,7 +11,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3307:3306"  # Voor lokale toegang (bijv. via MySQL Workbench)
+      - "3307:3306"  # Local access for tools like MySQL Workbench
     volumes:
       - db_data:/var/lib/mysql
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -32,7 +34,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - ~/.m2:/root/.m2  # Cache Maven dependencies lokaal
+      - ~/.m2:/root/.m2  # Cache Maven dependencies locally
     ports:
       - "8080:8080"
     environment:
@@ -52,7 +54,7 @@ services:
       - backend
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # Voorkom node_modules overschrijven
+      - /app/node_modules  # Prevent overwriting node_modules
     ports:
       - "3000:5173"
     environment:

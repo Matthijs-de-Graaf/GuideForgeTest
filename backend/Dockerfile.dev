@@ -1,16 +1,16 @@
-# Development image gebaseerd op Maven met Java 21
+# Development image based on Maven with Java 21
 FROM maven:3.9.6-eclipse-temurin-21
 WORKDIR /app
 
-# Kopieer Maven config en dependencies eerst voor caching
+# Copy Maven config and wrapper for caching dependencies
 COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw .
 RUN mvn dependency:go-offline
 
-# Kopieer broncode (wordt overschreven door bind mount in compose)
+# Copy source code (overwritten by bind mount in Docker Compose)
 COPY src ./src
 
-# Start Spring Boot in dev mode
+# Start Spring Boot in development mode
 CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.fork=false"]
 EXPOSE 8080

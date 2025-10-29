@@ -1,8 +1,11 @@
+# CI workflow for frontend build, lint, test, and audit
 name: Frontend CI
 
 on:
+  # Run on pushes to develop or feature branches
   push:
     branches: [ "develop", "feature/*" ]
+  # Run on pull requests to develop or main
   pull_request:
     branches: [ "develop", "main" ]
   workflow_dispatch:
@@ -12,8 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Get project files
       - uses: actions/checkout@v4
 
+      # Set up Node.js environment with caching
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -21,16 +26,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
 
+      # Install, lint, test, and build frontend
       - name: Install dependencies and test
         working-directory: ./frontend
         run: |
           npm ci
-          npm run lint || npm run lint -- --fix  # Probeer te fixen
+          npm run lint || npm run lint -- --fix
           npm test -- --coverage || echo "Tests failed, check logs"
           npm run build
         env:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
 
+      # Run npm audit to check for high severity vulnerabilities
       - name: NPM Audit
         working-directory: ./frontend
-        run: npm audit --audit-level=high || npm audit fix  # Verlaagd naar high voor debugging
+        run: npm audit --audit-level=high || npm audit fix

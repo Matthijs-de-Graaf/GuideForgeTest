@@ -1,8 +1,11 @@
+# CI workflow for backend build and tests
 name: Backend CI
 
 on:
+  # Trigger on pushes to develop or feature branches
   push:
     branches: [ "develop", "feature/*" ]
+  # Trigger on pull requests to develop or main
   pull_request:
     branches: [ "develop", "main" ]
   workflow_dispatch:
@@ -10,7 +13,9 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+
     services:
+      # MySQL database for integration tests
       db:
         image: mysql:8.0
         env:
@@ -28,9 +33,11 @@ jobs:
           --health-retries=5
 
     steps:
+      # Get the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Install JDK 21 for running Spring Boot
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -38,11 +45,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # Copy SQL init script for database setup
       - name: Copy init.sql to MySQL init directory
         run: |
           mkdir -p ./mysql-init
           cp docker-entrypoint-initdb.d/init.sql ./mysql-init/init.sql
 
+      # Wait for MySQL to start and run schema init
       - name: Initialize Database Schema
         run: |
           echo "Waiting for MySQL to be healthy..."
@@ -59,15 +68,18 @@ jobs:
           echo "MySQL failed to start."
           exit 1
 
+      # Check if tables were created correctly
       - name: Verify tables created
         run: |
           echo "Listing tables in ${{ secrets.MYSQL_DATABASE }}..."
           echo "SHOW TABLES;" | mysql -h 127.0.0.1 -u ${{ secrets.MYSQL_USER }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }}
 
+      # Give Maven wrapper execute permissions
       - name: Ensure mvnw is executable
         working-directory: ./backend
         run: chmod +x ./mvnw
 
+      # Run all backend tests
       - name: Run unit & integration tests
         working-directory: ./backend
         env:
@@ -77,6 +89,7 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: validate
         run: ./mvnw clean test -Dspring.profiles.active=test
 
+      # Upload test result reports as artifact
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4

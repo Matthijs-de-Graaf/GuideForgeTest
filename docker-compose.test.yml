@@ -1,3 +1,5 @@
+# Simple Docker Compose setup for backend and MySQL database
+
 version: '3.8'
 services:
   backend:
