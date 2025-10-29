@@ -1,11 +1,14 @@
 # Development image gebaseerd op Node 20
 FROM node:20
 WORKDIR /app
+
 # Kopieer package.json en lock file voor caching
 COPY package*.json ./
 RUN npm ci
+
 # Kopieer broncode (wordt overschreven door bind mount)
 COPY . .
+
 # Start Vite dev server
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 EXPOSE 5173

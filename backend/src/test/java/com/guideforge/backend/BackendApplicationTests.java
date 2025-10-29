@@ -8,6 +8,7 @@ class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// If ContainerTestConfig is in the test classpath and started statically,
+		// the Spring context will use the container-provided JDBC properties.
 	}
-
 }
